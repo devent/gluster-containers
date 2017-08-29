@@ -20,8 +20,10 @@ GLUSTERFS_CUSTOM_FSTAB="/var/lib/heketi/fstab"
 
 : "${GLUSTER_BRICKMULTIPLEX:=yes}"
 : "${GLUSTERFS_LOG_LEVEL:=INFO}"
+: "${GB_LOGDIR:="${GLUSTERFS_LOG_DIR}/gluster-block"}"
+export GB_LODGIR
 
-mkdir -p $GLUSTERFS_LOG_CONT_DIR
+mkdir -p $GLUSTERFS_LOG_CONT_DIR $GB_LOGDIR
 
 setup() {
   for i in $GLUSTERFS_CONF_DIR $GLUSTERFS_META_DIR
@@ -161,24 +163,37 @@ start_glusterd() {
 
 trap destroy EXIT
 
+mount -t configfs configfs /sys/kernel/config
+
 # start rpcbind if it is not started yet
 /usr/sbin/rpcinfo 127.0.0.1 >/dev/null 2>&1
 if [ $? -ne 0 ]; then
   /usr/sbin/rpcbind -w || exit 1
 fi
 
-touch $GLUSTERFS_LOG_DIR/glusterd.log
+mkdir -p /run/dbus
+/usr/bin/dbus-daemon --system --nofork --nopidfile --nosyslog 2>&1 | while read -r line; do echo "[dbus-daemon...] $line"; done &
+
+touch $GLUSTERFS_LOG_DIR/glusterd.log $GB_LOGDIR/tcmu-runner.log $GB_LOGDIR/gluster-blockd.log
 
 tail -n 0 -f $GLUSTERFS_LOG_DIR/glusterd.log | while read -r line; do echo "[glusterd......] $line"; done &
+tail -n 0 -f $GB_LOGDIR/tcmu-runner.log | while read -r line; do echo "[tcmu-runner...] $line"; done &
+tail -n 0 -f $GB_LOGDIR/gluster-blockd.log | while read -r line; do echo "[gluster-blockd] $line"; done &
 
 setup 2>&1 | while read -r line; do echo "[setup.........] $line"; done
 
 start_glusterd 2>&1 | tee -a $GLUSTERFS_LOG_CONT_DIR/start_glusterd | while read -r line; do echo "[glusterd......] $line"; done
 
+/usr/bin/tcmu-runner "--tcmu-log-dir=$GB_LOGDIR" --debug 1>/dev/null 2>&1 | while read -r line; do echo "[tcmu-runner...] $line"; done &
+
+/usr/bin/targetctl restore 2>&1 | while read -r line; do echo "[targetctl.....] $line"; done &
+
+/usr/sbin/gluster-blockd --glfs-lru-count "${GB_GLFS_LRU_COUNT:=5}" --log-level $GLUSTERFS_LOG_LEVEL 1>/dev/null 2>&1 &
+
 rc=0
 while [ $rc -eq 0 ]; do
   sleep 1
-  for svc in glusterd; do
+  for svc in glusterd tcmu-runner gluster-blockd; do
     # If service is not running $pid will be null
     pid=$(pidof $svc)
     if [ -z "$pid" ]; then

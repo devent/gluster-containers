@@ -17,7 +17,8 @@ ENV container docker
 COPY gluster-setup.sh systemctl-mock.sh /
 
 RUN dnf --setopt=tsflags=nodocs -y upgrade && \
-    dnf --setopt=tsflags=nodocs -y install glusterfs glusterfs-server glusterfs-geo-replication procps-ng xfsprogs && \
+    dnf --setopt=tsflags=nodocs -y install 'dnf-command(copr)' && dnf -y copr enable jarrpa/gluster-block && \
+    dnf --setopt=tsflags=nodocs -y install gluster-block targetcli target-restore dbus-python glusterfs glusterfs-server glusterfs-geo-replication procps-ng xfsprogs && \
     dnf clean all && \
     mkdir -p /etc/glusterfs_bkp /var/lib/glusterd_bkp /var/log/glusterfs_bkp && \
     cp -r /etc/glusterfs/* /etc/glusterfs_bkp && \
@@ -28,7 +29,7 @@ RUN dnf --setopt=tsflags=nodocs -y upgrade && \
 
 VOLUME [ "/sys/fs/cgroup" ]
 
-EXPOSE 111 24007 49152 49153 49154 49156 49157 49158 49159 49160 49161 49162 49163
+EXPOSE 111 3260 24007 24010 49152 49153 49154 49156 49157 49158 49159 49160 49161 49162 49163
 
 CMD ["/usr/sbin/gluster-setup.sh"]
 
