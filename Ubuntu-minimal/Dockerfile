@@ -4,10 +4,10 @@ MAINTAINER Jose A. Rivera <jarrpa@redhat.com>
 
 LABEL architecture="x86_64" \
       name="gluster-ubuntu-minimal" \
-      version="3.10" \
+      version="3.12" \
       vendor="Red Hat, Inc" \
-      summary="GlusterFS service (Ubuntu Slim + Gluster 3.10)" \
-      io.k8s.display-name="GlusteriFS 3.10 on Ubuntu Slim" \
+      summary="GlusterFS service (Ubuntu Slim + Gluster 3.12)" \
+      io.k8s.display-name="GlusteriFS 3.12 on Ubuntu Slim" \
       io.k8s.description="The gluster-ubuntu-minimal image is an image running GlusterFS, a distributed and scalable network filesystem. Using common, off-the-shelf hardware you can create large, distributed storage solutions for media streaming, data analysis, and other data- and bandwidth-intensive tasks." \
       description="The gluster-ubuntu-minimal image is an image running GlusterFS, a distributed and scalable network filesystem. Using common, off-the-shelf hardware you can create large, distributed storage solutions for media streaming, data analysis, and other data- and bandwidth-intensive tasks." \
       io.openshift.tags="gluster,glusterfs,gluster-ubuntu"
@@ -16,7 +16,7 @@ ENV container docker
 
 COPY gluster-setup.sh systemctl-mock.sh /
 
-RUN echo "deb http://ppa.launchpad.net/gluster/glusterfs-3.10/ubuntu xenial main\ndeb-src http://ppa.launchpad.net/gluster/glusterfs-3.10/ubuntu xenial main" > /etc/apt/sources.list.d/gluster.list && \
+RUN echo "deb http://ppa.launchpad.net/gluster/glusterfs-3.12/ubuntu xenial main\ndeb-src http://ppa.launchpad.net/gluster/glusterfs-3.12/ubuntu xenial main" > /etc/apt/sources.list.d/gluster.list && \
     apt-get -y update && \
     apt-get -y --allow-unauthenticated install glusterfs-server lvm2 thin-provisioning-tools procps xfsprogs && apt-get -y autoremove && apt-get -y clean && \
     gunzip /usr/share/copyrights.tar.gz && tar -rf /usr/share/copyrights.tar /usr/share/doc/*/copyright && gzip /usr/share/copyrights.tar && \
