@@ -44,7 +44,9 @@ RUN echo "deb http://ppa.launchpad.net/gluster/glusterfs-3.12/ubuntu xenial main
     cp -r /var/lib/glusterd/* /var/lib/glusterd_bkp && \
     mv /gluster-setup.sh /usr/sbin/gluster-setup.sh && mv /systemctl-mock.sh /bin/systemctl && \
     chmod 500 /usr/sbin/gluster-setup.sh && chmod 655 /bin/systemctl && \
-    sed -i.save -e "s#udev_sync = 1#udev_sync = 0#" -e "s#udev_rules = 1#udev_rules = 0#" -e "s#use_lvmetad = 1#use_lvmetad = 0#" /etc/lvm/lvm.conf
+    sed -i.save -e "s#udev_sync = 1#udev_sync = 0#" -e "s#udev_rules = 1#udev_rules = 0#" -e "s#use_lvmetad = 1#use_lvmetad = 0#" /etc/lvm/lvm.conf && \
+    # make rpcclient path same as Fedora
+    ln /sbin/rpcbind /usr/sbin/rpcbind
 
 VOLUME [ "/sys/fs/cgroup" ]
 
